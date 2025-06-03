@@ -1,0 +1,55 @@
+#define TRIG_PIN 14  // GPIO14
+#define ECHO_PIN 12  // GPIO12
+
+long duration;
+float distance;
+float maxDistance = 0;
+float minDistance = 9999; // Giả định lớn để cập nhật min đúng
+int count = 0;             // Biến đếm số lần đo
+const int maxCount = 100;  // Giới hạn số lần đo
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  Serial.println("Bat dau do khoang cach...");
+}
+
+void loop() {
+  if (count < maxCount) {
+    // Gửi xung Trigger
+    digitalWrite(TRIG_PIN, LOW);
+    delayMicroseconds(2);
+    digitalWrite(TRIG_PIN, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(TRIG_PIN, LOW);
+
+    // Đo thời gian Echo
+    duration = pulseIn(ECHO_PIN, HIGH);
+
+    // Tính khoảng cách (cm)
+    distance = duration * 0.034 / 2;
+
+    // Cập nhật min/max nếu trong khoảng đo hợp lý
+    if (distance > 0 && distance < 400) {
+      if (distance > maxDistance) maxDistance = distance;
+      if (distance < minDistance) minDistance = distance;
+    }
+
+    // In thông tin
+    Serial.print("Khoang cach: ");
+    Serial.print(distance);
+    Serial.print(" cm\tMax: ");
+    Serial.print(maxDistance);
+    Serial.print(" cm\tMin: ");
+    Serial.print(minDistance);
+    Serial.println(" cm");
+
+    count++;         // Tăng biến đếm
+    delay(800);     // Đợi 1 giây giữa các lần đo
+  } else {
+    // Khi đo đủ 100 lần
+    Serial.println("Da hoan thanh 100 lan do.");
+    while (true); // Dừng chương trình (vòng lặp vô hạn)
+  }
+}
